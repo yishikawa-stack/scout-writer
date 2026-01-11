@@ -1,4 +1,4 @@
-// Prisma スキーマ定義 (Vercelデプロイ用 - 修正反映確認)
+// Prisma スキーマ定義 (Vercelデプロイ用 - 最終仕様調整)
 // 新卒スカウト文章自動生成サービスのデータベース設計
 
 generator client {

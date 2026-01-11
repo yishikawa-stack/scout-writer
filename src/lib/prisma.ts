@@ -11,7 +11,11 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient() {
     // Vercel (Postgres) 環境では DATABASE_URL をそのまま使用
     if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('file:')) {
-        return new PrismaClient();
+        return new PrismaClient({
+            datasource: {
+                url: process.env.DATABASE_URL,
+            },
+        });
     }
 
     // ローカル (SQLite) 環境向けの既存設定
