@@ -9,11 +9,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-    // 開発環境と実行環境で DB ファイルの場所を prisma/dev.db に統一する
-    // url: "file:./dev.db" だと実行時のカレントディレクトリに依存するため、
-    // 明示的に prisma/dev.db を指定するか、schema.prisma のデフォルトに任せる。
-    // ここでは安全のためアダプターを使わずデフォルト（または環境変数）に寄せるのも一案だが
-    // 既存のアダプター構成を維持しつつパスを修正。
+    // Vercel (Postgres) 環境では DATABASE_URL をそのまま使用
+    if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('file:')) {
+        return new PrismaClient();
+    }
+
+    // ローカル (SQLite) 環境向けの既存設定
     const adapter = new PrismaLibSql({
         url: `file:./dev.db`,
     });
