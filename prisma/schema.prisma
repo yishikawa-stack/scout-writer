@@ -1,0 +1,129 @@
+// Prisma スキーマ定義
+// 新卒スカウト文章自動生成サービスのデータベース設計
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ユーザーテーブル（認証・アカウント管理）
+model User {
+  id           Int      @id @default(autoincrement())
+  companyId    Int      @map("company_id")
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("member") // admin または member
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+  scouts  Scout[]
+
+  @@map("users")
+}
+
+// 企業テーブル（企業プロファイル）
+model Company {
+  id                    Int      @id @default(autoincrement())
+  name                  String
+  shortName             String?  @map("short_name")
+  recruiterSignature    String?  @map("recruiter_signature")
+  logoUrl               String?  @map("logo_url")
+  description           String?
+  features              String?  // JSON形式で保存
+  commonPositions       String?  @map("common_positions") // JSON形式で保存
+  idealCandidateBullets String?  @map("ideal_candidate_bullets") // JSON形式で保存
+  selectionFlowText     String?  @map("selection_flow_text")
+  offerSpeedText        String?  @map("offer_speed_text")
+  scoutGuidelines       String?  @map("scout_guidelines") // JSON形式で保存: { mindset: string[], structure: string[], ngWords: string[] }
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  users     User[]
+  positions Position[]
+  students  Student[]
+  scouts    Scout[]
+
+  @@map("companies")
+}
+
+// ポジションテーブル（募集職種）
+model Position {
+  id           Int      @id @default(autoincrement())
+  companyId    Int      @map("company_id")
+  name         String
+  summary      String?
+  duties       String?  // JSON形式で保存
+  requirements String?  // JSON形式で保存
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+  scouts  Scout[]
+
+  @@map("positions")
+}
+
+// 学生テーブル（学生情報管理）
+model Student {
+  id            Int       @id @default(autoincrement())
+  companyId     Int       @map("company_id")
+  name          String
+  nameKana      String?   @map("name_kana")
+  university    String
+  faculty       String?
+  notes         String?
+  strengthTags  String?   @map("strength_tags") // JSON形式で保存
+  valueText     String?   @map("value_text")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  lastScoutedAt DateTime? @map("last_scouted_at")
+
+  company  Company          @relation(fields: [companyId], references: [id])
+  episodes StudentEpisode[]
+  scouts   Scout[]
+
+  @@map("students")
+}
+
+// 学生エピソードテーブル（学生の実績・経験）
+model StudentEpisode {
+  id              Int      @id @default(autoincrement())
+  studentId       Int      @map("student_id")
+  title           String
+  detail          String
+  abstractComment String?  @map("abstract_comment")
+  achievementText String?  @map("achievement_text")
+  tags            String?  // JSON形式で保存
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_episodes")
+}
+
+// スカウトテーブル（生成されたスカウト文章）
+model Scout {
+  id               Int      @id @default(autoincrement())
+  companyId        Int      @map("company_id")
+  studentId        Int      @map("student_id")
+  positionId       Int      @map("position_id")
+  content          String
+  generationParams String?  @map("generation_params") // JSON形式で保存
+  createdByUserId  Int      @map("created_by_user_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  company   Company  @relation(fields: [companyId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
+  position  Position @relation(fields: [positionId], references: [id])
+  createdBy User     @relation(fields: [createdByUserId], references: [id])
+
+  @@map("scouts")
+}
