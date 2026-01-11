@@ -6,9 +6,6 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
 // ユーザーテーブル（認証・アカウント管理）
 model User {
   id           Int      @id @default(autoincrement())
